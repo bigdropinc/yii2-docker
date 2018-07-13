@@ -1,0 +1,40 @@
+version: '2'
+services:
+  nginx:
+    extends:
+      file: common-compose.yml
+      service: nginx
+    volumes:
+      - ../app:/www
+      - ./nginx/prod/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - php
+    container_name: example_project_prod_nginx
+  php:
+    extends:
+      file: common-compose.yml
+      service: php
+    build:
+      context: ./php/prod/build
+      args:
+        USER_ID: "${USER_ID}"
+    volumes:
+      - ../app:/www
+      - ./php/prod/build/deploy.sh:/deploy.sh
+      - ./php/prod/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ./php/prod/php.ini:/usr/local/etc/php/php.ini
+    links:
+      - mysql_prod
+    container_name: example_project_prod_php
+  mysql_prod:
+    ports:
+      - '13416:3306'
+    extends:
+      file: common-compose.yml
+      service: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: example_project_prod
+      MYSQL_USER: example_project_prod
+      MYSQL_PASSWORD: example_project_prod
+    container_name: example_project_prod_mysql
